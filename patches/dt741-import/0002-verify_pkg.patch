@@ -1,0 +1,44 @@
+diff --git a/Users/wujixian/Documents/cmlm-dt741-openwrt.old/zte-e2631-openwrt/host/verify_pkg.mjs b/Users/wujixian/Documents/cmlm-dt741-openwrt/host/verify_pkg.mjs
+index 7b3334a..3b06e2d 100644
+--- a/Users/wujixian/Documents/cmlm-dt741-openwrt.old/zte-e2631-openwrt/host/verify_pkg.mjs
++++ b/Users/wujixian/Documents/cmlm-dt741-openwrt/host/verify_pkg.mjs
+@@ -118,34 +118,12 @@ console.log(`version header lands at slot+${hx(rd(h, 0x30))} (absolute ${hx(slot
+ const dtsPath = arg('--dts');
+ if (dtsPath) {
+   const t = fs.readFileSync(dtsPath, 'utf8');
+-  const parsePartitions = (text) => {
+-  const map = new Map();
+-
+-  for (const m of text.matchAll(/partition@[^{]*\{([\s\S]*?)\n\s*};/g)) {
+-    const body = m[1];
+-
+-    const lm = /label\s*=\s*"([^"]+)"/.exec(body);
+-    const rm = /reg\s*=\s*<\s*0x([0-9a-fA-F]+)\s+0x([0-9a-fA-F]+)\s*>/.exec(body);
+-
+-    if (!lm || !rm)
+-      continue;
+-
+-    map.set(lm[1], {
+-      off: parseInt(rm[1], 16),
+-      len: parseInt(rm[2], 16),
+-    });
+-  }
+-
+-  return map;
+-};
++  const grab = (label) => {
++    const m = new RegExp(`label = "${label}";[\\s\\S]*?reg = <0x([0-9a-fA-F]+)\\s+0x([0-9a-fA-F]+)>`).exec(t);
++    return m ? { off: parseInt(m[1], 16), len: parseInt(m[2], 16) } : null;
++  };
+   const SLOT1 = 0x2300000;
+-  //  const rf = grab('rootfs'), hd = grab('slot1-header'), dt = grab('rootfs_data'), sl = grab('slot1');
+-  const parts = parsePartitions(t);
+-
+-  const rf = parts.get('rootfs');
+-  const hd = parts.get('slot1-header');
+-  const dt = parts.get('rootfs_data');
+-  const sl = parts.get('slot1');
++  const rf = grab('rootfs'), hd = grab('slot1-header'), dt = grab('rootfs_data'), sl = grab('slot1');
+   // Measured on the first boot of our own image: ofpart's squashfs split turns the
+   // tail of the "rootfs" partition into a second partition named "rootfs_data", and
+   // fstools mounts the JFFS2 overlay there. Anything the bootloader checksums that

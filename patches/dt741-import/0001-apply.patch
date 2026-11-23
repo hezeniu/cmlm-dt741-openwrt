@@ -1,0 +1,16 @@
+diff --git a/Users/wujixian/Documents/cmlm-dt741-openwrt.old/zte-e2631-openwrt/apply.sh b/Users/wujixian/Documents/cmlm-dt741-openwrt/apply.sh
+index c4153d0..0cba229 100755
+--- a/Users/wujixian/Documents/cmlm-dt741-openwrt.old/zte-e2631-openwrt/apply.sh
++++ b/Users/wujixian/Documents/cmlm-dt741-openwrt/apply.sh
+@@ -208,10 +208,7 @@ ROOTDEV=$(awk '
+ 		}
+ 		if (d == 0) p = 0
+ 	}' "$DTS")
+-if [ -z "$ROOTDEV" ]; then
+-    echo "warning: no partition labelled rootfs in $DTS"
+-    echo "warning: continuing because non-E2631 boards may use different partition names"
+-fi
++[ -n "$ROOTDEV" ] || { echo "no partition labelled rootfs in $DTS" >&2; exit 1; }
+ 
+ # Written unconditionally, and our previous block removed first: apply.sh runs
+ # against a working tree that may already have been patched, and a stale
