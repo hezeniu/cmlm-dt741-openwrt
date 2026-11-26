@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# DT741 专用镜像构建命令。
+# 本文件由 sanechips/image/Makefile 在 BuildImage 展开前 include。
+
+DT741_IMAGE_DIR := $(TOPDIR)/target/linux/sanechips/image
+DT741_BINHEADER_SCRIPT := $(DT741_IMAGE_DIR)/dt741-binheader.py
+DT741_BINHEADER_TEMPLATE := $(DT741_IMAGE_DIR)/dt741-kernel0-header.bin
+
+# 给标准 Legacy uImage 添加 DT741 厂商 480B binheader。
+# 参数 1：槽位，a 对应 0x128=FFFFFFFF，b 对应 0x128=00000000。
+# $@ 是 OpenWrt 当前正在处理的 kernel 镜像文件；脚本会原子替换该文件。
+define Build/dt741-binheader
+	python3 "$(DT741_BINHEADER_SCRIPT)" \
+		--template "$(DT741_BINHEADER_TEMPLATE)" \
+		--slot "$(1)" \
+		"$@"
+endef
+
+# DT741 设备定义的 KERNEL 管线使用此步骤：
+# KERNEL := kernel-bin | append-dtb | uImage none | dt741-binheader a
+# 不在这里定义 Device/xxx：设备 DTS 文件名和最终设备标识尚未确定，避免猜测。

@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+
+/dts-v1/;
+
+/*
+ * DT741 GPON ONU
+ * SoC：Sanechips ZX279127S
+ *
+ * 当前阶段只定义已经确认的 DDR 参数。
+ * SoC 公共描述暂沿用现有 sanechips 平台的设备树基础；
+ * 其他板级硬件将在后续阶段逐项适配。
+ */
+
+#include "zte/zx279128s.dtsi"
+
+/ {
+	model = "ZTE DT741 GPON ONU";
+	compatible = "zte,zx279127sevb";
+
+	memory@40000000 {
+		device_type = "memory";
+
+		/*
+		 * U-Boot 报告 DDR 容量为 0x20000000（512 MiB）。
+		 * 起始地址 0x40000000 根据内核加载地址
+		 * 0x40008000 及现有同系列设备树确定，首次启动后核验。
+		 */
+		reg = <0x40000000 0x20000000>;
+	};
+};

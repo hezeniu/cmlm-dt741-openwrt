@@ -48,6 +48,14 @@ if command -v git >/dev/null 2>&1 && [ -d "$TREE/.git" ]; then
 	fi
 fi
 
+DT741_IMAGE_OVERLAY="$HERE/overlay/target/linux/sanechips/image"
+for f in Makefile.dt741 dt741-binheader.py dt741-kernel0-header.bin; do
+        [ -f "$DT741_IMAGE_OVERLAY/$f" ] || {
+                echo "apply.sh: missing DT741 image file in overlay: $f" >&2
+                exit 1
+        }
+done
+
 cp -r "$HERE/overlay/." "$TREE/"
 
 # cp -r only adds. A file deleted from overlay/ stays in a tree that was
@@ -150,6 +158,11 @@ if ! grep -q 'Makefile.e2631' "$IMG"; then
 	sed -i 's|^$(eval $(call BuildImage))$|include $(TOPDIR)/target/linux/sanechips/image/Makefile.e2631\n\n$(eval $(call BuildImage))|' "$IMG"
 fi
 grep -q 'Makefile.e2631' "$IMG" || { echo "failed to hook image/Makefile" >&2; exit 1; }
+if ! grep -q 'Makefile.dt741' "$IMG"; then
+        # DT741 的设备定义也必须在 BuildImage 展开前加载。
+        sed -i 's|^$(eval $(call BuildImage))$|include $(TOPDIR)/target/linux/sanechips/image/Makefile.dt741\n\n$(eval $(call BuildImage))|' "$IMG"
+fi
+grep -q 'Makefile.dt741' "$IMG" || { echo "failed to hook Makefile.dt741" >&2; exit 1; }
 
 # Take the MT7916 off kmodloader's autoload list. The package's AutoProbe entry
 # makes kmodloader load mt7915e during the boot phase, where the PCI core probes
@@ -363,6 +376,9 @@ assert_one_line() {	# assert_one_line <label> <added-max> <deleted-max> <path>
 }
 
 assert "image/Makefile includes Makefile.e2631" grep -q 'Makefile.e2631' "$IMG"
+assert "image/Makefile includes Makefile.dt741" grep -q 'Makefile.dt741' "$IMG"
+assert "DT741 image build files installed" \
+        bash -c "test -f '$TREE/target/linux/sanechips/image/Makefile.dt741' && test -f '$TREE/target/linux/sanechips/image/dt741-binheader.py' && test -f '$TREE/target/linux/sanechips/image/dt741-kernel0-header.bin'"
 assert "board dts present" test -f "$DTS"
 assert "base patch creating zte/zx279128s.dtsi present" \
 	bash -c "ls '$TREE'/target/linux/sanechips/patches-6.18/026-* >/dev/null 2>&1"
