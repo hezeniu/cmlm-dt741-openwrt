@@ -5,6 +5,7 @@
 *.bin
 *.dtb
 payload/
+.DS_Store
 
 # The serial captures are the primary witness for every "it died at this second"
 # conclusion in docs/, and they are tiny, so they are the one exception above.
